@@ -71,3 +71,36 @@ Create Django project with Docker Configurations
 We used docker-compose to run a command on our image that contains the django dependents it and we will create a project for our application.
 
 $ docker-compose run app sh -c "django-admin startproject app ."
+
+
+
+NOTE: What is Travis: Travis is really useful tool for my project that we can used for auto test and check our project when push on github, every times.
+Go to https://travis-ci.org/ and signin with github
+
+Create a travis file : .travis.yml
+firt we have to tell, what language did we use that is python
+------------------------------------------------------------------
+language: python
+python:
+    - "3.6"
+
+services:
+    - docker
+
+before_script: pip install docker-compose
+
+script:
+    - docker-compose run app sh -c "python manage.py test && flake8"
+------------------------------------------------------------------
+
+
+
+
+
+
+NOTE: We are using flake8, this a modular code checker and we have to install it.
+      Go to python package index (pypi) https://pypi.org and added last version in to requirenment.txt
+
+Create .flake8 file in app folder (manage.py location) and type :
+-------------------------------------------------------------------
+[]
