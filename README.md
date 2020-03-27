@@ -103,4 +103,46 @@ NOTE: We are using flake8, this a modular code checker and we have to install it
 
 Create .flake8 file in app folder (manage.py location) and type :
 -------------------------------------------------------------------
-[]
+[flake8]
+exclude = 
+    migrations
+    __pycache__,
+    manage.py,
+    settings.py
+--------------------------------------------------------------------
+
+
+
+Example Unit Test(Test-driven development (TDD))
+Create calc.py in app/app (settings.py location) and write :
+--------------------------------------------------------------------
+def add(x,y):
+    """ADD TOW NUMBER TOGETHER"""
+    return x+y
+
+def subtract(x,y):
+    """Substract x from y and return value"""
+    return y-x
+--------------------------------------------------------------------
+
+
+
+Create tests.py in app/app (settings.py location) and write :
+--------------------------------------------------------------------
+from django.test import TestCase
+from app.calc import add,subtract
+
+class CalcTests(TestCase):
+
+    def test_add_numbers(self):
+        """Test that two number are added together"""
+        self.assertEqual(add(3,8),11)
+    
+    def test_subtract_numbers(slef):
+        """Test that values are substracted and returned"""
+        self.assertEqual(subtract(5,11),6)
+-------------------------------------------------------------------
+
+
+Run test
+$ docker-compose run app sh -c "python manage.py test && flake8"
