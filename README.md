@@ -10,7 +10,7 @@ Used pinenv and ubuntu 16.0 and Docker
 2- $ pipenv shell
 
 Create Dockerfile
---------------------------------------------------------------------
+
 FROM python:3.7-alpine
 MAINTAINER Tehran Hamid Mottaghian
 
@@ -26,15 +26,15 @@ COPY ./app /app
 
 RUN adduser -D user
 USER user
-----------------------------------------------------------------------
+
 
 
 
 Create requirements.txt
------------------------------------------------------------------------
+{
 Django>=3.0.4,<3.1.0
 djangorestframework>=3.11.0,<3.10.0
------------------------------------------------------------------------
+}
 
 
 Create a new folder and rename it, app
@@ -51,20 +51,22 @@ NOTE:   Docker-compose is a tool that allows to run a docker image easlly from p
 
 
 Create docker-compose.yml
-----------------------------------------------------------------------
-version: "3"
 
-services:
-    app:
-        build: 
-            context: .
-        ports:
-            - "8000:8000"
-        volumes:
-            - ./app:/app
-        command: >
-            sh -c "python manage.py runserver 0.0.0.0:8000"
-----------------------------------------------------------------------
+{
+    version: "3"
+
+    services:
+        app:
+            build: 
+                context: .
+            ports:
+                - "8000:8000"
+            volumes:
+                - ./app:/app
+            command: >
+                sh -c "python manage.py runserver 0.0.0.0:8000"
+}
+
 
 
 Create Django project with Docker Configurations
@@ -77,21 +79,25 @@ $ docker-compose run app sh -c "django-admin startproject app ."
 NOTE: What is Travis: Travis is really useful tool for my project that we can used for auto test and check our project when push on github, every times.
 Go to https://travis-ci.org/ and signin with github
 
+
+
 Create a travis file : .travis.yml
 firt we have to tell, what language did we use that is python
-------------------------------------------------------------------
-language: python
-python:
-    - "3.6"
+{
 
-services:
-    - docker
+    language: python
+    python:
+        - "3.6"
 
-before_script: pip install docker-compose
+    services:
+        - docker
 
-script:
-    - docker-compose run app sh -c "python manage.py test && flake8"
-------------------------------------------------------------------
+    before_script: pip install docker-compose
+
+    script:
+        - docker-compose run app sh -c "python manage.py test && flake8"
+}
+
 
 
 
@@ -102,14 +108,16 @@ NOTE: We are using flake8, this a modular code checker and we have to install it
       Go to python package index (pypi) https://pypi.org and added last version in to requirenment.txt
 
 Create .flake8 file in app folder (manage.py location) and type :
--------------------------------------------------------------------
-[flake8]
-exclude = 
-    migrations
-    __pycache__,
-    manage.py,
-    settings.py
---------------------------------------------------------------------
+
+{
+    [flake8]
+    exclude = 
+        migrations
+        __pycache__,
+        manage.py,
+        settings.py
+}
+
 
 
 
