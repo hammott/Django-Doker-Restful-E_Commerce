@@ -52,7 +52,7 @@ NOTE:   Docker-compose is a tool that allows to run a docker image easlly from p
 
 Create docker-compose.yml
 
-{
+________________________________________________________________________________________
     version: "3"
 
     services:
@@ -65,7 +65,7 @@ Create docker-compose.yml
                 - ./app:/app
             command: >
                 sh -c "python manage.py runserver 0.0.0.0:8000"
-}
+___________________________________________________________________________________________
 
 
 
@@ -83,8 +83,7 @@ Go to https://travis-ci.org/ and signin with github
 
 Create a travis file : .travis.yml
 firt we have to tell, what language did we use that is python
-{
-
+_____________________________________________________________________________________________
     language: python
     python:
         - "3.6"
@@ -96,7 +95,7 @@ firt we have to tell, what language did we use that is python
 
     script:
         - docker-compose run app sh -c "python manage.py test && flake8"
-}
+__________________________________________________________________________________________
 
 
 
@@ -109,36 +108,39 @@ NOTE: We are using flake8, this a modular code checker and we have to install it
 
 Create .flake8 file in app folder (manage.py location) and type :
 
-{
+_____________________________________________________________________________________
     [flake8]
     exclude = 
         migrations
         __pycache__,
         manage.py,
         settings.py
-}
+____________________________________________________________________________________
 
 
 
 
 Example Unit Test(Test-driven development (TDD))
 Create calc.py in app/app (settings.py location) and write :
---------------------------------------------------------------------
-def add(x,y):
-    """ADD TOW NUMBER TOGETHER"""
-    return x+y
 
-def subtract(x,y):
-    """Substract x from y and return value"""
-    return y-x
---------------------------------------------------------------------
+______________________________________________________________________________
+    def add(x,y):
+        """ADD TOW NUMBER TOGETHER"""
+        return x+y
+
+    def subtract(x,y):
+        """Substract x from y and return value"""
+        return y-x
+______________________________________________________________________________
+
 
 
 
 Create tests.py in app/app (settings.py location) and write :
---------------------------------------------------------------------
+
 from django.test import TestCase
 from app.calc import add,subtract
+____________________________________________________________________________
 
 class CalcTests(TestCase):
 
@@ -149,8 +151,7 @@ class CalcTests(TestCase):
     def test_subtract_numbers(slef):
         """Test that values are substracted and returned"""
         self.assertEqual(subtract(5,11),6)
--------------------------------------------------------------------
-
+______________________________________________________________________________
 
 Eexample Run test:
 $ docker-compose run app sh -c "python manage.py test && flake8"
@@ -163,7 +164,7 @@ Our APP name is "core"
 NOTE: Delete views.py in core application beacuse in core we dont needed it and Create a __init__.py  and test_models.py in tests folder.
 
 in tets_models.py :
-----------------------------------------------------------------
+________________________________________________________________________________
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 
@@ -188,7 +189,7 @@ class ModelTests(TestCase):
         user = get_user_model().objects.create_user(email, 'test1234')
 
         self.assertEqual(user.email, email.lower())
-----------------------------------------------------------------
+_____________________________________________________________________________
 And for run test unit
 $ docker-compose run app sh -c "python manage.py test"
 
@@ -197,7 +198,7 @@ $ docker-compose run app sh -c "python manage.py test"
 
 
 Create Custom User Model in core app:
------------------------------------------------------------------
+________________________________________________________________________________
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, \
                                         BaseUserManager, \
@@ -226,7 +227,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
     USERNAME_FIELD = 'email'
 
-----------------------------------------------------------------------------------
+___________________________________________________________________________________________
 User model must define in settings.py : 
 AUTH_USER_MODEL = 'core.User' ('name of the app. name of the user class in models.py')
 
@@ -242,18 +243,18 @@ $ docker-compose run app sh -c "python manage.py makemigrations core"
 Add Validation for email field:
 
 test_models.py in ModelTest class:
---------------------------------------------------------------------------------
+__________________________________________________________________________________________
 def test_new_user_invalid_email(self):
         """Test creating user with no email raises error"""
         with self.assertRaises(ValueError):
             get_user_model().objects.create_user(None, 'test1234')
--------------------------------------------------------------------------------
+__________________________________________________________________________________________
 
 UserManager class in models.py:
--------------------------------------------------------------------------------
+_________________________________________________________________________________________
 if not email:
             raise ValueError('Users must have and email address')
--------------------------------------------------------------------------------
+__________________________________________________________________________________________
 
 and test unit items:
 $ ocker-compose run app sh -c "python manage.py test"
@@ -264,7 +265,7 @@ $ ocker-compose run app sh -c "python manage.py test"
 
 Create Super User:
 test_models.py in ModelTest class:
---------------------------------------------------------------------------------
+______________________________________________________________________________________
     def test_create_new_superuser(self):
         """Test creating a new superuser"""
         user = get_user_model().objects.create_superuser(
@@ -273,10 +274,10 @@ test_models.py in ModelTest class:
         )
         self.assertTrue(user.is_superuser)
         self.assertTrue(user.is_staff)
--------------------------------------------------------------------------------
+_____________________________________________________________________________________
 
 UserManager class in models.py:
-------------------------------------------------------------------------------
+_____________________________________________________________________________________
     def create_superuser(self,email,password):
         """Create and Sacves a super user"""
         user = self.create_user(email,password)
@@ -285,7 +286,7 @@ UserManager class in models.py:
         user.save(using= slef._db)
 
         return user
------------------------------------------------------------------------------
+_______________________________________________________________________________________
 
 
 
