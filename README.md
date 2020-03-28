@@ -144,5 +144,144 @@ class CalcTests(TestCase):
 -------------------------------------------------------------------
 
 
-Run test
+Eexample Run test:
 $ docker-compose run app sh -c "python manage.py test && flake8"
+
+
+Create New APP in ourproject with docker-compose:
+$ docker-compose run app sh -c "python manage.py startapp core"
+Our APP name is "core"
+
+NOTE: Delete views.py in core application beacuse in core we dont needed it and Create a __init__.py  and test_models.py in tests folder.
+
+in tets_models.py :
+----------------------------------------------------------------
+from django.test import TestCase
+from django.contrib.auth import get_user_model
+
+
+class ModelTests(TestCase):
+
+    def test_create_user_with_email_successful(self):
+        """Test Creating a new user with an email"""
+        email = 'hammott@hammott.ir'
+        password = 'test1234'
+        user = get_user_model().objects.create_user(
+            email=email,
+            password=password
+        )
+
+        self.assertEqual(user.email, email)
+        self.assertTrue(user.check_password(password))
+
+    def test_new_user_email_normalized(self):
+        """Test the email for a new user is normalizer"""
+        email = 'hammott@hammott.ir'
+        user = get_user_model().objects.create_user(email, 'test1234')
+
+        self.assertEqual(user.email, email.lower())
+----------------------------------------------------------------
+And for run test unit
+$ docker-compose run app sh -c "python manage.py test"
+
+
+
+
+
+Create Custom User Model in core app:
+-----------------------------------------------------------------
+from django.db import models
+from django.contrib.auth.models import AbstractBaseUser, \
+                                        BaseUserManager, \
+                                        PermissionsMixin
+
+
+class UserManager(BaseUserManager):
+    def create_user(self, email, password=None, **extra_fields):
+        """Creates and Saves a new user"""
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+
+        return user
+
+
+
+class User(AbstractBaseUser, PermissionsMixin):
+    """Custom user model that support using email instead of username"""
+    email = models.EmailField(max_length=254, unique=True)
+    name = models.CharField(max_length=255)
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+
+
+    objects = UserManager()
+    USERNAME_FIELD = 'email'
+
+----------------------------------------------------------------------------------
+User model must define in settings.py : 
+AUTH_USER_MODEL = 'core.User' ('name of the app. name of the user class in models.py')
+
+
+Make Migrations with docker-compose
+$ docker-compose run app sh -c "python manage.py makemigrations core"
+
+
+
+
+
+
+Add Validation for email field:
+
+test_models.py in ModelTest class:
+--------------------------------------------------------------------------------
+def test_new_user_invalid_email(self):
+        """Test creating user with no email raises error"""
+        with self.assertRaises(ValueError):
+            get_user_model().objects.create_user(None, 'test1234')
+-------------------------------------------------------------------------------
+
+UserManager class in models.py:
+-------------------------------------------------------------------------------
+if not email:
+            raise ValueError('Users must have and email address')
+-------------------------------------------------------------------------------
+
+and test unit items:
+$ ocker-compose run app sh -c "python manage.py test"
+
+
+
+
+
+Create Super User:
+test_models.py in ModelTest class:
+--------------------------------------------------------------------------------
+    def test_create_new_superuser(self):
+        """Test creating a new superuser"""
+        user = get_user_model().objects.create_superuser(
+            'hammott@hammott.ir',
+            'test1234'
+        )
+        self.assertTrue(user.is_superuser)
+        self.assertTrue(user.is_staff)
+-------------------------------------------------------------------------------
+
+UserManager class in models.py:
+------------------------------------------------------------------------------
+    def create_superuser(self,email,password):
+        """Create and Sacves a super user"""
+        user = self.create_user(email,password)
+        user.is_staff = True
+        user.is_superuser = True
+        user.save(using= slef._db)
+
+        return user
+-----------------------------------------------------------------------------
+
+
+
+
+and test unit items:
+$ ocker-compose run app sh -c "python manage.py test"
+
