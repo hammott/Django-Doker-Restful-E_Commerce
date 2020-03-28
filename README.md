@@ -1,4 +1,8 @@
 # Django-Doker-Restful-E_Commerce
+# Hamid Mottaghian FullStack Developer,
+
+
+
 Create Ecommerce with Python and djanro framework, Docker and Rest Framework
 
 
@@ -283,7 +287,7 @@ ________________________________________________________________________________
         user = self.create_user(email,password)
         user.is_staff = True
         user.is_superuser = True
-        user.save(using= slef._db)
+        user.save(using= self._db)
 
         return user
 _______________________________________________________________________________________
@@ -293,4 +297,95 @@ ________________________________________________________________________________
 
 and test unit items:
 $ ocker-compose run app sh -c "python manage.py test"
+
+
+
+
+
+Create admin for my application
+___________________________________________________________________________________
+in test_admin.py:
+
+from django.test import TestCase, Client
+from django.contrib.auth import get_user_model
+from django.urls import reverse
+
+
+class AdminSiteTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.admin_user = get_user_model().objects.create_superuser(
+            email = 'admin@hammott.ir',
+            password = 'password1234'
+        )
+        self.client.force_login(self.admin_user)
+        self.user = get_user_model().objects.create_user(
+            email = 'hammott@hammott.ir',
+            password = 'password1234',
+            name = 'Test user full name'
+        )
+
+    def test_users_listed(self):
+        """Test that users are listed on user page"""
+        url = reverse('admin:core_user_changelist')
+        res = self.client.get(url)
+
+        self.assertContains(res, self.user.name)
+        self.assertContains(res, self.user.email)
+
+    def test_user_change_page(self):
+        """Test that the user edit page work"""
+        url = reverse ('admin:core_user_change', args=[self.user.id])
+        res = self.client.get(url)
+
+        self.assertEqual(res.status_code, 200)
+
+    def test_create_user_page(self):
+        """Test that create user page works"""
+        url = reverse ( 'admin:core_user_add')
+        res = self.client.get(url)
+
+        self.assertEqual(res.status_code, 200)
+________________________________________________________________________________________
+
+________________________________________________________________________________________
+admin.py:
+
+from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.utils.translation import gettext
+from core import models
+
+class UserAdmin(BaseUserAdmin):
+    ordering = ['id']
+    list_display = ['email', 'name']
+    fieldsets = (
+        (None, {'fields':('email','password')}),
+        (gettext('Personal Info'),{'fields': ('name',)}),
+        (
+            gettext('Permissions'),
+            {
+                'fields':(
+                    'is_active',
+                    'is_staff' 
+                    'is_superuser'
+                )
+            }
+        ),
+        (gettext('Important dates'), {'fields': ('last_login',)})
+    )
+    add_fieldsets = (
+        (None, {
+            'classes':('wide',),
+            'fields': ('email', 'password1', 'password2')
+        }),
+    )
+
+admin.site.register(models.User, UserAdmin)
+
+________________________________________________________________________________________
+
+
+again Run Unit Test:
+$ docker-compose run app sh -c "python manage.py test && flake8"
 
