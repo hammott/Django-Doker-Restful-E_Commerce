@@ -389,3 +389,113 @@ ________________________________________________________________________________
 again Run Unit Test:
 $ docker-compose run app sh -c "python manage.py test && flake8"
 
+
+
+
+Setup postgresql Database 
+first we have to add settings database in docker-compose:
+________________________________________________________________________________________
+docker-compose-yml:
+
+
+NOTE: Add in app
+....
+
+        environment:
+            - DB_HOST=db
+            - DB_NAME=app
+            - DB_USER=postgres
+            - DB_PASS=secretpassword
+        depends_on:
+            - db
+
+
+
+NOTE: Add in services
+...
+
+    db:
+        image: 'postgres:10-alpine'
+        environment:
+            - POSTGRES_DB=app
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=secretpassword
+___________________________________________________________________________________________
+
+
+Add psycopg2>=2.7.5 in requirements.txt
+
+
+___________________________________________________________________________________________
+and in Dockerfile
+
+COPY ./requirements.txt /requirements.txt
+RUN apk add --update --no-cache postgresql-client
+RUN apk add --update --no-cache --virtual .tmp-build-deps \
+        gcc libc-dev linux-headers postgresql-dev
+RUN pip install -r /requirements.txt
+RUN apk del .tmp-build-deps
+
+___________________________________________________________________________________________
+
+and install postgres database with docker-compose 
+$ docker-compose build
+
+
+___________________________________________________________________________________________
+Configuration Database in settings.py:
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'HOST': os.environ.get('DB_HOST'),
+        'NAME': os.environ.get('DB_NAME'),
+        'USER': os.environ.get('DB_USER'),
+        'PASSWORD': os.environ.get('DB_PASS'),
+    }
+}
+
+______________________________________________________________________________________________
+
+
+
+
+
+
+Docker-compose Run server
+Run server with docker compose. First we have to ALLOWED_HOSTS in settings.py
+My host in docker-compose defined '0.0.0.0'
+Add docker-compose host in settings.py ALLOWED_HOSTS=['0.0.0.0'] and run command:
+$ docker-compose up
+
+
+
+How can we create a super user with docker-compose?
+$ docker-compose run app sh -c "python manage.py createsuperuser
+My super user account : email: hammott@hammott.ir , pass: 1234567
+
+_________________________________________
+How can we run migrations an migrate?
+$ docker-compose run app sh -c "python manage.py makemigrations"
+$ docker-compose run app sh -c "python manage.py migrate"
+__________________________________________
+__________________________________________
+How can we change static files CDN?
+in settings.py:
+Change TEMPLATES DIRS :
+        'DIRS': [os.path.join(BASE_DIR, 'templates')]
+
+ADD in settings.py:
+        STATICFILES_DIRS=[
+            os.path.join(BASE_DIR,"static_project"),
+        ]
+
+        STATIC_ROOT = os.path.join(os.path.dirname(BASE_DIR),"static_cdn")
+        
+
+ADD in urls.py
+        from django.conf import settings
+        from django.conf.urls.static import static
+        if settings.DEBUG:
+        urlpatterns = urlpatterns + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+__________________________________________
